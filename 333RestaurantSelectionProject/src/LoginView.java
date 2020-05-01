@@ -18,4 +18,6 @@ public class LoginView extends HorizontalLayout {
 	}
 
 		public static final String ROUTE = "login";
+
+
 }
