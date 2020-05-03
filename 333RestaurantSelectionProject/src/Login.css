@@ -44,6 +44,19 @@ body {
   opacity: 0;
 }
 
+#connection-msg{
+  width: 23%;
+  text-align: top;
+  margin: 0;
+  padding: 5px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #8a0000;
+  border: 1px solid #8a0000;
+  background-color: #e58f8f;
+  opacity: 0;
+}
+
 #error-msg-second-line {
   display: block;
 }
