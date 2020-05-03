@@ -203,15 +203,11 @@ public class Login_Form extends javax.swing.JFrame {
 			
 			String inputHash = hashPassword(passSalt,passwordText);
 			if(inputHash.equals(passHash)) {
-				JOptionPane.showMessageDialog(null, "Succeed Login");
+				JOptionPane.showMessageDialog(null, "You have logged in");
 			}else {
 				JOptionPane.showMessageDialog(null, "Incorrect Password");
 			}
-				System.out.println(passSalt.equals(passSalt.toString().getBytes()));
-				System.out.println(passHash);
-				System.out.println(hashPassword(passSalt, "888"));
-				System.out.println(passwordText);
-				return true;		
+			return true;		
 		} catch (SQLException e) {
 			JOptionPane.showMessageDialog(null, "Failed to Login");
 			e.printStackTrace();
@@ -225,8 +221,10 @@ public class Login_Form extends javax.swing.JFrame {
     	String username = jTextField1.getText();
     	char[] pass = jPasswordField1.getPassword();
     	String password = new String(pass);
-    	
-    	checkLogin(username, password);
+    	if(jTextField1.getText().equals("") || jTextField1.getText().equals("username") || password.equals(""))
+			JOptionPane.showMessageDialog(null, "Username and Password can't be empty");
+		else
+			checkLogin(username, password);
     }                                     
 
     private void jTextField1MouseClicked(java.awt.event.MouseEvent evt) {                                         
