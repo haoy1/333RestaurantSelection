@@ -201,6 +201,8 @@ public class Register_Form extends javax.swing.JFrame {
 			stm.execute();
 			if(stm.getInt(1) == 1) 
 				JOptionPane.showMessageDialog(null, "Username already existed");
+			else if(username.isEmpty() || password.isEmpty())
+				JOptionPane.showMessageDialog(null, "Username and Password can't be empty");
 			else
 				JOptionPane.showMessageDialog(null, "Successfully Registered");
 			return true;
