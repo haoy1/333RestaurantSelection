@@ -199,7 +199,10 @@ public class Register_Form extends javax.swing.JFrame {
 			stm.setString(3, hashPassword(salt, password));
 			stm.setBytes(4, salt);
 			stm.execute();
-			JOptionPane.showMessageDialog(null, "Successfully Registered");
+			if(stm.getInt(1) == 1) 
+				JOptionPane.showMessageDialog(null, "Username already existed");
+			else
+				JOptionPane.showMessageDialog(null, "Successfully Registered");
 			return true;
 		} catch (SQLException e) {
 			JOptionPane.showMessageDialog(null, "Failed to register");
