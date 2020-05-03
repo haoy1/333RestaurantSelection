@@ -5,11 +5,21 @@
  */
 
 import java.awt.Color;
+import java.awt.im.InputMethodHighlight;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
 import java.sql.CallableStatement;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.Base64;
+import java.util.Random;
 
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 import javax.swing.JOptionPane;
 
 /**
@@ -18,6 +28,9 @@ import javax.swing.JOptionPane;
  */
 public class Login_Form extends javax.swing.JFrame {
 
+	private static final Random RANDOM = new SecureRandom();
+	private static final Base64.Encoder enc = Base64.getEncoder();
+	private static final Base64.Decoder dec = Base64.getDecoder();
     private DatabaseConnection dbService;
 	/**
      * Creates new form Login_Form
@@ -170,30 +183,43 @@ public class Login_Form extends javax.swing.JFrame {
         pack();
     }// </editor-fold>                        
 
-    public boolean checkLogin(String username, String pass) {
-		// similar as addRestarant
+    public boolean checkLogin(String username, String passwordText) {
+		
 		Connection c = this.dbService.getConnection();
 		CallableStatement stm = null;
-		
+
 		try {
-			stm = c.prepareCall("{?=call userLogin(?,?)}");
-			stm.registerOutParameter(1, Types.INTEGER);
+			stm = c.prepareCall("{?=call haoy1.getUserHashSalt(?)}");
+			stm.registerOutParameter(1, Types.VARCHAR);
 			stm.setString(2, username);
-			stm.setString(3, pass);
 			stm.execute();
-			if(stm.getInt(1) == 0) {
-				System.out.println("failed");
-			}else {
-				System.out.println("haha");
+			ResultSet result = stm.executeQuery();
+			String passHash = null;
+			byte[] passSalt = null;
+			while(result.next()) {
+				passHash = result.getString("PasswordHash");
+				passSalt = result.getBytes("PasswordSalt");
 			}
-			JOptionPane.showMessageDialog(null, "Succeed Login ");
-			return true;
+			
+			String inputHash = hashPassword(passSalt,passwordText);
+			if(inputHash.equals(passHash)) {
+				JOptionPane.showMessageDialog(null, "Succeed Login");
+			}else {
+				JOptionPane.showMessageDialog(null, "Incorrect Password");
+			}
+				System.out.println(passSalt.equals(passSalt.toString().getBytes()));
+				System.out.println(passHash);
+				System.out.println(hashPassword(passSalt, "888"));
+				System.out.println(passwordText);
+				return true;		
 		} catch (SQLException e) {
-			JOptionPane.showMessageDialog(null, "ERROR: Fail to add the new Sell relationship");
+			JOptionPane.showMessageDialog(null, "Failed to Login");
 			e.printStackTrace();
 		}
+		
 		return false;
 	}
+
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {                                         
         // TODO add your handling code here:
     	String username = jTextField1.getText();
@@ -239,17 +265,32 @@ public class Login_Form extends javax.swing.JFrame {
 
     private void jPasswordField1FocusLost(java.awt.event.FocusEvent evt) {                                          
 
-    }                                         
+    }    
+    public String hashPassword(byte[] salt, String password) {
+
+		KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 65536, 128);
+		SecretKeyFactory f;
+		byte[] hash = null;
+		try {
+			f = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+			hash = f.generateSecret(spec).getEncoded();
+		} catch (NoSuchAlgorithmException e) {
+			JOptionPane.showMessageDialog(null, "An error occurred during password hashing. See stack trace.");
+			e.printStackTrace();
+		} catch (InvalidKeySpecException e) {
+			JOptionPane.showMessageDialog(null, "An error occurred during password hashing. See stack trace.");
+			e.printStackTrace();
+		}
+		return getStringFromBytes(hash);
+	}
+    public String getStringFromBytes(byte[] data) {
+		return enc.encodeToString(data);
+	}
 
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {

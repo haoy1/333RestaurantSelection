@@ -20,12 +20,15 @@ public class DatabaseConnection {
 	}
 
 	public boolean connect(String user, String pass) {
-		// Task 1
-		//BUILD YOUR CONNECTION STRING HERE USING THE SAMPLE URL ABOVE
+
+
 		String URL = "jdbc:sqlserver://"+this.serverName+";databaseName="+this.databaseName+";user="+user+";password={"+pass+"}";
 		try {
+			Class.forName("com.mysql.jdbc.Driver");
 			connection = DriverManager.getConnection(URL);
 		} catch (SQLException e) {
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
 		if(connection != null) {

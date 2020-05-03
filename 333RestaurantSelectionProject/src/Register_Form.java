@@ -1,13 +1,34 @@
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.Base64;
+import java.util.Random;
+
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author haoy1
  */
 public class Register_Form extends javax.swing.JFrame {
-
-    /**
+	private static final Random RANDOM = new SecureRandom();
+	private static final Base64.Encoder enc = Base64.getEncoder();
+	private static final Base64.Decoder dec = Base64.getDecoder();
+    private DatabaseConnection dbService;
+	/**
      * Creates new form Register_Form
      */
     public Register_Form() {
+    	
+    	this.dbService = new DatabaseConnection("golem.csse.rose-hulman.edu", "RestaurantSelection");
+    	dbService.connect("haoy1", "Horryno1");
         initComponents();
     }
 
@@ -32,7 +53,6 @@ public class Register_Form extends javax.swing.JFrame {
         jTextField3 = new javax.swing.JTextField();
         jTextField4 = new javax.swing.JTextField();
         jButton1 = new javax.swing.JButton();
-        jOptionPane1 = new javax.swing.JOptionPane();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -105,8 +125,7 @@ public class Register_Form extends javax.swing.JFrame {
                                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 315, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(jPasswordField1, javax.swing.GroupLayout.PREFERRED_SIZE, 315, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGap(18, 18, 18)
-                                .addComponent(jOptionPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                                .addGap(18, 18, 18))))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(139, 139, 139)
                         .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 371, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -143,8 +162,7 @@ public class Register_Form extends javax.swing.JFrame {
                                 .addGap(9, 9, 9)
                                 .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE))))
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(10, 10, 10)
-                        .addComponent(jOptionPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(10, 10, 10)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel5)
@@ -169,9 +187,29 @@ public class Register_Form extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>                        
-
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {                                         
-        // TODO add your handling code here:
+    public boolean addUser(String username, String password) {
+		// similar as addRestarant
+		Connection c = this.dbService.getConnection();
+		CallableStatement stm = null;
+		byte[] salt = getNewSalt();
+		try {
+			stm = c.prepareCall("{?=call dbo.addUser(?,?,?)}");
+			stm.registerOutParameter(1, Types.INTEGER);
+			stm.setString(2, username);
+			stm.setString(3, hashPassword(salt, password));
+			stm.setBytes(4, salt);
+			stm.execute();
+			JOptionPane.showMessageDialog(null, "Successfully Registered");
+			return true;
+		} catch (SQLException e) {
+			JOptionPane.showMessageDialog(null, "Failed to register");
+			e.printStackTrace();
+		}
+		return false;
+	}
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
+    	String pass = String.valueOf(jPasswordField1.getPassword());
+        addUser(jTextField1.getText(), pass);
     }                                        
 
     private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {                                            
@@ -192,12 +230,39 @@ public class Register_Form extends javax.swing.JFrame {
         // check empty fields
         if(username.trim().equals("") || name.trim().equals(""))
         {
-            jOptionPane1.showMessageDialog(null, "One Or More Fields Are Empty","Empty Fields",2);
+        	JOptionPane.showMessageDialog(null, "One Or More Fields Are Empty","Empty Fields",2);
             return false;
         }
         return true;
     }
-    /**
+    public byte[] getNewSalt() {
+		byte[] salt = new byte[16];
+		RANDOM.nextBytes(salt);
+		return salt;
+	}
+    
+    public String hashPassword(byte[] salt, String password) {
+
+		KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 65536, 128);
+		SecretKeyFactory f;
+		byte[] hash = null;
+		try {
+			f = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+			hash = f.generateSecret(spec).getEncoded();
+		} catch (NoSuchAlgorithmException e) {
+			JOptionPane.showMessageDialog(null, "An error occurred during password hashing. See stack trace.");
+			e.printStackTrace();
+		} catch (InvalidKeySpecException e) {
+			JOptionPane.showMessageDialog(null, "An error occurred during password hashing. See stack trace.");
+			e.printStackTrace();
+		}
+		return getStringFromBytes(hash);
+	}
+    public String getStringFromBytes(byte[] data) {
+		return enc.encodeToString(data);
+	}
+
+	/**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
@@ -239,7 +304,6 @@ public class Register_Form extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
-    private javax.swing.JOptionPane jOptionPane1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPasswordField jPasswordField1;
     private javax.swing.JTextField jTextField1;
