@@ -71,7 +71,7 @@ public void showMenu(int ID, Connection c) {
      label2.setSize(500,100);
      label2.setLocation(0,35);
      label2.setFont(new java.awt.Font("Times New Roman", 0, 15)); // NOI18N
-     label2.setText("Hold Shift to select more");
+     label2.setText("Hold ctrl to select more");
      final DefaultListModel<String> l1 = new DefaultListModel<>();
      JButton b = new JButton("Select");  
      b.setBounds(300,150,80,30);  
