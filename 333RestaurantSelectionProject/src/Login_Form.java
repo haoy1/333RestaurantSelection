@@ -20,6 +20,7 @@ import java.util.Random;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 /**
@@ -66,6 +67,12 @@ public class Login_Form extends javax.swing.JFrame {
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton1ActionPerformed(evt);
+            }
+        });
+        
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
             }
         });
 
@@ -225,7 +232,15 @@ public class Login_Form extends javax.swing.JFrame {
 			JOptionPane.showMessageDialog(null, "Username and Password can't be empty");
 		else
 			checkLogin(username, password);
-    }                                     
+    }
+    
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {                                         
+        // TODO add your handling code here:
+    	Register_Form rg = new Register_Form();
+    	rg.setVisible(true);
+    	rg.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    	this.dispose();
+    }
 
     private void jTextField1MouseClicked(java.awt.event.MouseEvent evt) {                                         
         // TODO add your handling code here:
