@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.HashMap;  
 
 public class SelectRestItem  
@@ -35,7 +36,7 @@ public class SelectRestItem
 					map.put(result.getString("Name"), result.getInt("ID"));
 				}
 			} catch (SQLException e) {
-				JOptionPane.showMessageDialog(null, "Failed to Login");
+				JOptionPane.showMessageDialog(null, "Failed to connect");
 				e.printStackTrace();
 			}
 			
@@ -47,15 +48,12 @@ public class SelectRestItem
           f.setVisible(true);  
           b.addActionListener(new ActionListener() {  
               public void actionPerformed(ActionEvent e) {   
-                 String data = "";  
                  if (list1.getSelectedIndex() != -1) {                       
                     int ID = map.get(list1.getSelectedValue());   
                     showMenu(ID, c);
                     System.out.println(ID);
                     f.dispose();
                  }  
-     
-                 label.setText(data);  
               }  
            });   
      }  
@@ -85,7 +83,7 @@ public void showMenu(int ID, Connection c) {
 			l1.addElement(result.getString("Name"));
 		}
 	} catch (SQLException e) {
-		JOptionPane.showMessageDialog(null, "Failed to Login");
+		JOptionPane.showMessageDialog(null, "Failed to connect");
 		e.printStackTrace();
 	}
 	final JList<String> list1 = new JList<>(l1);  
@@ -94,11 +92,37 @@ public void showMenu(int ID, Connection c) {
     f.setSize(450,450);  
     f.setLayout(null);  
     f.setVisible(true);  
+    b.addActionListener(new ActionListener() {  
+        public void actionPerformed(ActionEvent e) {
+        	ArrayList<String> items = new ArrayList<String>();
+        	items.addAll(list1.getSelectedValuesList());
+           createOrderItem(c, items);
+           JOptionPane.showMessageDialog(null, "Your order has been successfully recorded.");
+        }
+     });
 }
 
-//public void createRecord
+public void createOrderItem(Connection c, ArrayList<String> items) {
+	CallableStatement stm = null;
+	int index = 1;
+	try {
+		stm = c.prepareCall("{call haoy1.createOrderItem(?,?,?,?,?,?,?,?,?,?)}");
+		for(String item: items) {
+			stm.setString(index++, item);
+			if(index == 10)
+				break;
+		}
+		for(index++;index<=10;index++) {
+			stm.setString(index, "null");
+		}
+		stm.execute();
+	} catch (SQLException e) {
+		JOptionPane.showMessageDialog(null, "Failed to createOrder.");
+		e.printStackTrace();
+	}
+}
 public static void main(String args[])  
     {  
-		new SelectRestItem();  
+		new SelectRestItem();
     }
 }  
