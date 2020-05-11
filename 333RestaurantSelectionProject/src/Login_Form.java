@@ -211,6 +211,7 @@ public class Login_Form extends javax.swing.JFrame {
 			String inputHash = hashPassword(passSalt,passwordText);
 			if(inputHash.equals(passHash)) {
 				JOptionPane.showMessageDialog(null, "You have logged in");
+				SelectRestItem.main(username);
 			}else {
 				JOptionPane.showMessageDialog(null, "Incorrect Password");
 			}
