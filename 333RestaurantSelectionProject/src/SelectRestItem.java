@@ -191,9 +191,8 @@ public void createOrderItem(Connection c, ArrayList<String> items, String userna
 			stm.setString(2, item);
 			stm.setString(3, String.valueOf(res));
 			stm.setString(index, item);
+			stm.execute();
 		}
-		
-		stm.execute();
 	} catch (SQLException e) {
 		JOptionPane.showMessageDialog(null, "Failed to createOrder.");
 		e.printStackTrace();
