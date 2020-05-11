@@ -162,11 +162,11 @@ protected void checkOrderHistory(Connection c, String username) {
     String ResName = "";
     String Order = "";
     try {
-    	stm = c.prepareCall("select RestaurantName from haoy.OrderItem where UserName = " +username);
+    	stm = c.prepareCall("select RestaurantName, Item from haoy1.OrderItem where UserName = '"+username+"' ");
     	ResultSet rs = stm.executeQuery();
-    	if(rs.next()) {
+    	while(rs.next()) {
     		ResName = rs.getString("RestaurantName");
-    		Order = rs.getString("Order");
+    		Order = rs.getString("Item");
     		//model.addRow(new Object[] {ResName});
     		model.addRow(new Object[] {ResName, Order});
     	}
@@ -187,9 +187,10 @@ public void createOrderItem(Connection c, ArrayList<String> items, String userna
 	try {
 		for(String item: items) {
 			stm = c.prepareCall("{call haoy1.createOrderItem(?,?,?)}");
-			stm.setString(1, username);
-			stm.setString(2, item);
-			stm.setString(3, String.valueOf(res));
+			stm.setString(1,item);
+			
+			stm.setInt(2,res);
+			stm.setString(3, username);
 			stm.setString(index, item);
 			stm.execute();
 		}
