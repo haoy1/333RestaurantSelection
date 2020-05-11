@@ -114,7 +114,7 @@ public void createOrderItem(Connection c, ArrayList<String> items) {
 			index++;
 		}
 		for(;index<=10;index++) {
-			stm.setString(index, "null");
+			stm.setString(index, "NULL");
 		}
 		stm.execute();
 	} catch (SQLException e) {
