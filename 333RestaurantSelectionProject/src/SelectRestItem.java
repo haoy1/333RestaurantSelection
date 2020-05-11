@@ -108,11 +108,12 @@ public void createOrderItem(Connection c, ArrayList<String> items) {
 	try {
 		stm = c.prepareCall("{call haoy1.createOrderItem(?,?,?,?,?,?,?,?,?,?)}");
 		for(String item: items) {
-			stm.setString(index++, item);
+			stm.setString(index, item);
 			if(index == 10)
 				break;
+			index++;
 		}
-		for(index++;index<=10;index++) {
+		for(;index<=10;index++) {
 			stm.setString(index, "null");
 		}
 		stm.execute();
