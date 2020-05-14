@@ -150,7 +150,7 @@ protected void checkOrderHistory(Connection c, String username) {
     label1.setFont(new java.awt.Font("Times New Roman", 0, 25)); // NOI18N
     label1.setText("Order History");
     DefaultTableModel model = new DefaultTableModel();
-    String[] columnNames = {"Restaurant Name", "Food Ordered"};
+    String[] columnNames = {"Restaurant Name", "Food Ordered", "Date/Time"};
 	model.setColumnIdentifiers(columnNames);
     JTable table = new JTable();
     table.setModel(model);
@@ -161,14 +161,17 @@ protected void checkOrderHistory(Connection c, String username) {
     scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
     String ResName = "";
     String Order = "";
+    String date = "";
+    //int quantity;
     try {
-    	stm = c.prepareCall("select RestaurantName, Item from haoy1.OrderItem where UserName = '"+username+"' ");
+    	stm = c.prepareCall("select RestaurantName, Item,Created_at from haoy1.OrderItem where UserName = '"+username+"' ");
     	ResultSet rs = stm.executeQuery();
     	while(rs.next()) {
     		ResName = rs.getString("RestaurantName");
     		Order = rs.getString("Item");
-    		//model.addRow(new Object[] {ResName});
-    		model.addRow(new Object[] {ResName, Order});
+    		date = rs.getString("Created_at");
+    		//quantity = rs.getInt("Quantity");
+    		model.addRow(new Object[] {ResName, Order, date});
     	}
     	
     	
