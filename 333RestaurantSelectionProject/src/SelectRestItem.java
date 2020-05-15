@@ -306,7 +306,7 @@ public void createOrderItem(Connection c, ArrayList<String> items, String userna
 	int temp = 1;
 	try {
 		for(String item: items) {
-			if(temp==1) {
+			//if(temp==1) {
 				stm = c.prepareCall("{call haoy1.createOrderItem(?,?,?)}");
 				
 				stm.setString(1,item);
@@ -314,20 +314,20 @@ public void createOrderItem(Connection c, ArrayList<String> items, String userna
 				stm.setInt(2,res);
 				stm.setString(3, username);
 				stm.execute();
-				temp++;
-			}else {
-				int orderID=0;
-				stm2 = c.prepareCall("select top 1 ID from haoy1.OrderItem Order by ID desc");
-				ResultSet rs = stm2.executeQuery();
-				if (rs.next())
-					orderID = rs.getInt(1);
-				stm3 = c.prepareCall("{call chex11.AddOrder(?,?,?,?)}");
-				stm3.setInt(1, orderID);
-				stm3.setString(2,item);      
-				stm3.setInt(3,res);
-				stm3.setString(4, username);
-				stm3.execute();
-			}
+//				temp++;
+//			}else {
+//				int orderID=0;
+//				stm2 = c.prepareCall("select top 1 ID from haoy1.OrderItem Order by ID desc");
+//				ResultSet rs = stm2.executeQuery();
+//				if (rs.next())
+//					orderID = rs.getInt(1);
+//				stm3 = c.prepareCall("{call chex11.AddOrder(?,?,?,?)}");
+//				stm3.setInt(1, orderID);
+//				stm3.setString(2,item);      
+//				stm3.setInt(3,res);
+//				stm3.setString(4, username);
+//				stm3.execute();
+//			}
 		}
 	} catch (SQLException e) {
 		JOptionPane.showMessageDialog(null, "Failed to createOrder.");
