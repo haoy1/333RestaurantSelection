@@ -16,6 +16,7 @@ import java.util.Vector;
 public class SelectRestItem  
 {  
 	private DatabaseConnection dbService;
+	private int selectedRestID;
      SelectRestItem(String username){
      	this.dbService = new DatabaseConnection("golem.csse.rose-hulman.edu", "RestaurantSelection");
      	dbService.connect("haoy1", "Horryno1");
@@ -49,9 +50,35 @@ public class SelectRestItem
           f.add(list1);  f.add(b); f.add(label);  
           f.setSize(450,450);  
           f.setLayout(null);  
-          f.setVisible(true);  
+          f.setVisible(true); 
+          
+          JButton rate = new JButton("Rate");
+          rate.setBounds(300, 200, 80, 30);
+          rate.addActionListener(new ActionListener() {
+
+      		@Override
+      		public void actionPerformed(ActionEvent e) {
+      			int restID = map.get(list1.getSelectedValue());   
+      			Rating_Form rating_form = new Rating_Form(username, restID, list1.getSelectedValue(), true);
+      			rating_form.setVisible(true);
+      		} });
+          
+          JButton check = new JButton("Check");
+          check.setBounds(300, 250, 80, 30);
+          check.addActionListener(new ActionListener() {
+      		@Override
+      		public void actionPerformed(ActionEvent e) {
+      			if(list1.getSelectedValuesList().size() != 1)
+      				JOptionPane.showMessageDialog(null, "You have to check exactly 1 item each time.");
+      			else {
+      				int restID = map.get(list1.getSelectedValue());
+      				checkReview(c, restID, true);
+      			}
+      				
+      		} });
+          
           JButton end = new JButton("Exit");
-          end.setBounds(300,250, 80, 30);
+          end.setBounds(300, 300, 80, 30);
           end.addActionListener(new ActionListener() {
 
      		@Override
@@ -65,13 +92,13 @@ public class SelectRestItem
                     int ID = map.get(list1.getSelectedValue());   
               
 					showMenu(ID, c, username);
-                    System.out.println(ID);
                     f.dispose();
                  }  
               }  
            });  
           f.add(end);
-         
+          f.add(check);
+          f.add(rate);
      }  
      
 public void showMenu(int ID, Connection c, String username) {
@@ -87,6 +114,7 @@ public void showMenu(int ID, Connection c, String username) {
      label2.setFont(new java.awt.Font("Times New Roman", 0, 15)); // NOI18N
      label2.setText("Hold ctrl to select more");
      final DefaultListModel<String> l1 = new DefaultListModel<>();
+     HashMap<String, Integer> map = new HashMap<>(); 
      JButton b = new JButton("Select");  
      b.setBounds(300,150,80,30);  
 	try {
@@ -97,6 +125,7 @@ public void showMenu(int ID, Connection c, String username) {
 		ResultSet result = stm.executeQuery();
 		while(result.next()) {
 			l1.addElement(result.getString("Name"));
+			map.put(result.getString("Name"), result.getInt("ID"));
 		}
 	} catch (SQLException e) {
 		JOptionPane.showMessageDialog(null, "Failed to connect");
@@ -116,8 +145,40 @@ public void showMenu(int ID, Connection c, String username) {
            JOptionPane.showMessageDialog(null, "Your order has been successfully recorded.");
         }
      });
+    
+    JButton rate = new JButton("Rate");
+    rate.setBounds(300, 200, 80, 30);
+    rate.addActionListener(new ActionListener() {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			ArrayList<String> items = new ArrayList<String>();
+        	items.addAll(list1.getSelectedValuesList());
+        	if(items.size() != 1)
+        		JOptionPane.showMessageDialog(null, "You have to rate exactly 1 item each time.");
+        	else {
+	        	int itemID = map.get(items.get(0));
+				Rating_Form rating_form = new Rating_Form(username, itemID, list1.getSelectedValue(), false);
+				rating_form.setVisible(true);
+        	}
+		} });
+    
+    JButton check = new JButton("Check");
+    check.setBounds(300, 250, 80, 30);
+    check.addActionListener(new ActionListener() {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			if(list1.getSelectedValuesList().size() != 1)
+				JOptionPane.showMessageDialog(null, "You have to check exactly 1 item each time.");
+			else {
+				int foodID = map.get(list1.getSelectedValue());
+				checkReview(c, foodID, false);
+			}
+				
+		} });
+    
     JButton end = new JButton("Exit");
-    end.setBounds(300,250, 80, 30);
+    end.setBounds(300,300, 80, 30);
     end.addActionListener(new ActionListener() {
 
 		@Override
@@ -135,13 +196,12 @@ public void showMenu(int ID, Connection c, String username) {
 			
 		}});
     f.add(end);
+    f.add(rate);
+    f.add(check);
     f.add(history);
 }
-
-protected void checkOrderHistory(Connection c, String username) {
-	JFrame frame1 = new JFrame("Order History Result");
-
-    frame1.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+protected void checkReview(Connection c, int xID, boolean isRestaurant) {
+	JFrame frame1 = new JFrame("Reviews from all customers");
 
     frame1.setLayout(new BorderLayout());
 	CallableStatement stm = null;
@@ -150,7 +210,60 @@ protected void checkOrderHistory(Connection c, String username) {
     label1.setFont(new java.awt.Font("Times New Roman", 0, 25)); // NOI18N
     label1.setText("Order History");
     DefaultTableModel model = new DefaultTableModel();
-    String[] columnNames = {"Restaurant Name", "Food Ordered", "Date/Time"};
+    String[] columnNames = {"Comments", "Star"};
+	model.setColumnIdentifiers(columnNames);
+    JTable table = new JTable();
+    table.setModel(model);
+    table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+    table.setFillsViewportHeight(true);
+    JScrollPane scroll = new JScrollPane(table);
+    scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+    String reviewText = "";
+    int star;
+    if(isRestaurant) {
+	    try {
+	    	stm = c.prepareCall("select ReviewText, Star from chex11.RestaurantRate where RestaurantID = '"+xID+"' ");
+	    	ResultSet rs = stm.executeQuery();
+	    	while(rs.next()) {
+	    		reviewText = rs.getString("ReviewText");
+	    		star = rs.getInt("star");
+	    		model.addRow(new Object[] {reviewText, star});
+	    	}
+	    }catch (SQLException e) {
+			JOptionPane.showMessageDialog(null, "Failed to display Restaurant Review");
+			e.printStackTrace();
+		}
+    }else {
+    	try {
+	    	stm = c.prepareCall("select ReviewText, Stars from haoy1.FoodRate where MenuItemID = '"+xID+"' ");
+	    	ResultSet rs = stm.executeQuery();
+	    	while(rs.next()) {
+	    		reviewText = rs.getString("ReviewText");
+	    		star = rs.getInt("stars");
+	    		model.addRow(new Object[] {reviewText, star});
+	    	}
+	    }catch (SQLException e) {
+			JOptionPane.showMessageDialog(null, "Failed to display Food Review");
+			e.printStackTrace();
+		}
+    }
+    frame1.add(scroll);
+    frame1.setVisible(true);
+    frame1.setSize(400, 300);
+}
+
+
+protected void checkOrderHistory(Connection c, String username) {
+	JFrame frame1 = new JFrame("Order History Result");
+    frame1.setLayout(new BorderLayout());
+	CallableStatement stm = null;
+    final JLabel label1 = new JLabel();
+    label1.setSize(500,100);
+    label1.setFont(new java.awt.Font("Times New Roman", 0, 25)); // NOI18N
+    label1.setText("Order History");
+    DefaultTableModel model = new DefaultTableModel();
+    String[] columnNames = {"Restaurant Name", "Food Ordered","Created Time"};
 	model.setColumnIdentifiers(columnNames);
     JTable table = new JTable();
     table.setModel(model);
@@ -161,17 +274,15 @@ protected void checkOrderHistory(Connection c, String username) {
     scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
     String ResName = "";
     String Order = "";
-    String date = "";
-    //int quantity;
+    String created_at = "";
     try {
-    	stm = c.prepareCall("select RestaurantName, Item,Created_at from haoy1.OrderItem where UserName = '"+username+"' ");
+    	stm = c.prepareCall("select RestaurantName, Item, created_at from haoy1.OrderItem where UserName = '"+username+"' ");
     	ResultSet rs = stm.executeQuery();
     	while(rs.next()) {
     		ResName = rs.getString("RestaurantName");
     		Order = rs.getString("Item");
-    		date = rs.getString("Created_at");
-    		//quantity = rs.getInt("Quantity");
-    		model.addRow(new Object[] {ResName, Order, date});
+    		created_at = rs.getString("created_at");
+    		model.addRow(new Object[] {ResName, Order, created_at});
     	}
     	
     	
