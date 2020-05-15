@@ -263,7 +263,7 @@ protected void checkOrderHistory(Connection c, String username) {
     label1.setFont(new java.awt.Font("Times New Roman", 0, 25)); // NOI18N
     label1.setText("Order History");
     DefaultTableModel model = new DefaultTableModel();
-    String[] columnNames = {"Restaurant Name", "Food Ordered","Created Time"};
+    String[] columnNames = {"ID","Restaurant Name", "Food Ordered","Created Time"};
 	model.setColumnIdentifiers(columnNames);
     JTable table = new JTable();
     table.setModel(model);
@@ -275,14 +275,17 @@ protected void checkOrderHistory(Connection c, String username) {
     String ResName = "";
     String Order = "";
     String created_at = "";
+    int id=0;
     try {
-    	stm = c.prepareCall("select RestaurantName, Item, created_at from haoy1.OrderItem where UserName = '"+username+"' ");
+    	stm = c.prepareCall("{call chex11.checkHistory(?)}");
+    	stm.setString(1, username);
     	ResultSet rs = stm.executeQuery();
     	while(rs.next()) {
+    		id = rs.getInt("ID");
     		ResName = rs.getString("RestaurantName");
     		Order = rs.getString("Item");
     		created_at = rs.getString("created_at");
-    		model.addRow(new Object[] {ResName, Order, created_at});
+    		model.addRow(new Object[] {id, ResName, Order, created_at});
     	}
     	
     	
@@ -297,16 +300,34 @@ protected void checkOrderHistory(Connection c, String username) {
 
 public void createOrderItem(Connection c, ArrayList<String> items, String username, int res) {
 	CallableStatement stm = null;
-	int index = 1;
+	CallableStatement stm2 = null;
+	CallableStatement stm3 = null;
+	//int index = 1;
+	int temp = 1;
 	try {
 		for(String item: items) {
-			stm = c.prepareCall("{call haoy1.createOrderItem(?,?,?)}");
-			stm.setString(1,item);
-			
-			stm.setInt(2,res);
-			stm.setString(3, username);
-			stm.setString(index, item);
-			stm.execute();
+			if(temp==1) {
+				stm = c.prepareCall("{call haoy1.createOrderItem(?,?,?)}");
+				
+				stm.setString(1,item);
+				
+				stm.setInt(2,res);
+				stm.setString(3, username);
+				stm.execute();
+				temp++;
+			}else {
+				int orderID=0;
+				stm2 = c.prepareCall("select top 1 ID from haoy1.OrderItem Order by ID desc");
+				ResultSet rs = stm2.executeQuery();
+				if (rs.next())
+					orderID = rs.getInt(1);
+				stm3 = c.prepareCall("{call chex11.AddOrder(?,?,?,?)}");
+				stm3.setInt(1, orderID);
+				stm3.setString(2,item);      
+				stm3.setInt(3,res);
+				stm3.setString(4, username);
+				stm3.execute();
+			}
 		}
 	} catch (SQLException e) {
 		JOptionPane.showMessageDialog(null, "Failed to createOrder.");
