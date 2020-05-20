@@ -31,6 +31,11 @@ public class Register_Form extends javax.swing.JFrame {
     	dbService.connect("haoy1", "Horryno1");
         initComponents();
     }
+    public Register_Form(String username, String password) {
+    	
+    	this.dbService = new DatabaseConnection("golem.csse.rose-hulman.edu", "RestaurantSelection");
+    	dbService.connect("haoy1", "Horryno1");
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.

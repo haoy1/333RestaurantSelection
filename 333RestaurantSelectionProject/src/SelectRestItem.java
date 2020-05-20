@@ -1,4 +1,3 @@
-
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
@@ -33,7 +32,7 @@ public class SelectRestItem
 		CallableStatement stm = null;
 		
 			try {
-				stm = c.prepareCall("{?=call dbo.getAllRestaurants}");
+				stm = c.prepareCall("{?=call haoy1.getAllRestaurants}");
 				stm.registerOutParameter(1, Types.VARCHAR);
 				stm.execute();
 				ResultSet result = stm.executeQuery();
@@ -46,9 +45,9 @@ public class SelectRestItem
 				e.printStackTrace();
 			}
           final JList<String> list1 = new JList<>(l1);  
-          list1.setBounds(100,100, 175,275);  
+          list1.setBounds(100,100, 175,1075);  
           f.add(list1);  f.add(b); f.add(label);  
-          f.setSize(450,450);  
+          f.setSize(450,1200);  
           f.setLayout(null);  
           f.setVisible(true); 
           
@@ -114,6 +113,7 @@ public void showMenu(int ID, Connection c, String username) {
      label2.setFont(new java.awt.Font("Times New Roman", 0, 15)); // NOI18N
      label2.setText("Hold ctrl to select more");
      final DefaultListModel<String> l1 = new DefaultListModel<>();
+     
      HashMap<String, Integer> map = new HashMap<>(); 
      JButton b = new JButton("Select");  
      b.setBounds(300,150,80,30);  
@@ -131,7 +131,40 @@ public void showMenu(int ID, Connection c, String username) {
 		JOptionPane.showMessageDialog(null, "Failed to connect");
 		e.printStackTrace();
 	}
-	final JList<String> list1 = new JList<>(l1);  
+	final JList<String> list1 = new JList<>(l1);
+	ArrayList <String> list1All = new ArrayList<String>();
+    for (int i = 0; i < list1.getModel().getSize(); i++) {
+         list1All.add(String.valueOf(list1.getModel().getElementAt(i)));
+    }
+	 HashMap<String, Integer> addMap = new HashMap<>();
+	 for(String item: list1All) {
+			addMap.put(item, 0);
+	 }
+	    JButton addButton = new JButton("Add");  
+	    addButton.setBounds(300,100,80,30);  
+	    addButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				addMap.put(list1.getSelectedValue(), addMap.get(list1.getSelectedValue()+1));
+			} });
+		
+	    JButton rate = new JButton("Rate");
+	    rate.setBounds(300, 200, 80, 30);
+	    rate.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				ArrayList<String> items = new ArrayList<String>();
+	        	items.addAll(list1.getSelectedValuesList());
+	        	if(items.size() != 1)
+	        		JOptionPane.showMessageDialog(null, "You have to rate exactly 1 item each time.");
+	        	else {
+		        	int itemID = map.get(items.get(0));
+					Rating_Form rating_form = new Rating_Form(username, itemID, list1.getSelectedValue(), false);
+					rating_form.setVisible(true);
+	        	}
+			} });
     list1.setBounds(100,100, 175,275);  
     f.add(list1);  f.add(b); f.add(label1); f.add(label2);
     f.setSize(450,450);  
@@ -141,27 +174,12 @@ public void showMenu(int ID, Connection c, String username) {
         public void actionPerformed(ActionEvent e) {
         	ArrayList<String> items = new ArrayList<String>();
         	items.addAll(list1.getSelectedValuesList());
-           createOrderItem(c, items, username, ID);
+           createOrderItem(c, items, username, ID, addMap);
            JOptionPane.showMessageDialog(null, "Your order has been successfully recorded.");
         }
      });
     
-    JButton rate = new JButton("Rate");
-    rate.setBounds(300, 200, 80, 30);
-    rate.addActionListener(new ActionListener() {
-
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			ArrayList<String> items = new ArrayList<String>();
-        	items.addAll(list1.getSelectedValuesList());
-        	if(items.size() != 1)
-        		JOptionPane.showMessageDialog(null, "You have to rate exactly 1 item each time.");
-        	else {
-	        	int itemID = map.get(items.get(0));
-				Rating_Form rating_form = new Rating_Form(username, itemID, list1.getSelectedValue(), false);
-				rating_form.setVisible(true);
-        	}
-		} });
+   
     
     JButton check = new JButton("Check");
     check.setBounds(300, 250, 80, 30);
@@ -195,6 +213,7 @@ public void showMenu(int ID, Connection c, String username) {
 			checkOrderHistory(c,username);
 			
 		}});
+    f.add(addButton);
     f.add(end);
     f.add(rate);
     f.add(check);
@@ -263,7 +282,7 @@ protected void checkOrderHistory(Connection c, String username) {
     label1.setFont(new java.awt.Font("Times New Roman", 0, 25)); // NOI18N
     label1.setText("Order History");
     DefaultTableModel model = new DefaultTableModel();
-    String[] columnNames = {"ID","Restaurant Name", "Food Ordered","Created Time"};
+    String[] columnNames = {"ID","Restaurant Name", "Food Ordered","Created Time", "Quantity"};
 	model.setColumnIdentifiers(columnNames);
     JTable table = new JTable();
     table.setModel(model);
@@ -275,6 +294,7 @@ protected void checkOrderHistory(Connection c, String username) {
     String ResName = "";
     String Order = "";
     String created_at = "";
+    int quantity =0;
     int id=0;
     try {
     	stm = c.prepareCall("{call chex11.checkHistory(?)}");
@@ -285,7 +305,8 @@ protected void checkOrderHistory(Connection c, String username) {
     		ResName = rs.getString("RestaurantName");
     		Order = rs.getString("Item");
     		created_at = rs.getString("created_at");
-    		model.addRow(new Object[] {id, ResName, Order, created_at});
+    		quantity = rs.getInt("Quantity");
+			model.addRow(new Object[] {id, ResName, Order, created_at, quantity});
     	}
     	
     	
@@ -298,7 +319,7 @@ protected void checkOrderHistory(Connection c, String username) {
     frame1.setSize(400, 300);
 }
 
-public void createOrderItem(Connection c, ArrayList<String> items, String username, int res) {
+public void createOrderItem(Connection c, ArrayList<String> items, String username, int res, HashMap<String, Integer> map) {
 	CallableStatement stm = null;
 	CallableStatement stm2 = null;
 	CallableStatement stm3 = null;
@@ -306,14 +327,17 @@ public void createOrderItem(Connection c, ArrayList<String> items, String userna
 	int temp = 1;
 	try {
 		for(String item: items) {
-			//if(temp==1) {
-				stm = c.prepareCall("{call haoy1.createOrderItem(?,?,?)}");
+//			if(map.get(item) != 0) {
+				stm = c.prepareCall("{call haoy1.createOrderItem(?,?,?,?)}");
 				
 				stm.setString(1,item);
 				
 				stm.setInt(2,res);
 				stm.setString(3, username);
+				stm.setInt(4, map.get(item));
+				//stm.setInt(4, map.get(item));
 				stm.execute();
+//			}
 //				temp++;
 //			}else {
 //				int orderID=0;
@@ -338,4 +362,4 @@ public static void main(String username)
     {  
 		new SelectRestItem(username);
     }
-}  
+}   
