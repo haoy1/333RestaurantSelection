@@ -334,7 +334,6 @@ public void createOrderItem(Connection c, ArrayList<String> items, String userna
 				
 				stm.setInt(2,res);
 				stm.setString(3, username);
-				System.out.println(map.get(item));
 				stm.setInt(4, map.get(item));
 				//stm.setInt(4, map.get(item));
 				stm.execute();

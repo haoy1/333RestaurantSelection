@@ -13,6 +13,7 @@ import java.util.Scanner;
 
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -84,7 +85,7 @@ public class ImportData {
 	}
 
 	private static void insertAdministrator() throws IOException, SQLException {
-		String excelFilePath = "ad.xlsx";
+		String excelFilePath = "C:\\Users\\chenx11\\Desktop\\ad.xlsx";
 		FileInputStream inputStream = new FileInputStream(excelFilePath);
 		@SuppressWarnings("resource")
 		Workbook workbook = new XSSFWorkbook(inputStream);
@@ -109,7 +110,7 @@ public class ImportData {
 	}
 
 	private static void insertRestaurantRate() throws IOException, SQLException {
-		String excelFilePath = "resRate.xlsx";
+		String excelFilePath = "C:\\Users\\chenx11\\Desktop\\resRate.xlsx";
 		FileInputStream inputStream = new FileInputStream(excelFilePath);
 		@SuppressWarnings("resource")
 		Workbook workbook = new XSSFWorkbook(inputStream);
@@ -134,7 +135,7 @@ public class ImportData {
 	}
 
 	private static void insertOrderItem() throws IOException, SQLException {
-		String excelFilePath = "order.xlsx";
+		String excelFilePath = "C:\\Users\\chenx11\\Desktop\\order.xlsx";
 		FileInputStream inputStream = new FileInputStream(excelFilePath);
 		@SuppressWarnings("resource")
 		Workbook workbook = new XSSFWorkbook(inputStream);
@@ -159,7 +160,7 @@ public class ImportData {
 	}
 
 	private static void insertFoodRate() throws IOException, SQLException {
-		String excelFilePath = "foodRate.xlsx";
+		String excelFilePath = "C:\\Users\\chenx11\\Desktop\\foodRate.xlsx";
 		FileInputStream inputStream = new FileInputStream(excelFilePath);
 		@SuppressWarnings("resource")
 		Workbook workbook = new XSSFWorkbook(inputStream);
@@ -185,7 +186,7 @@ public class ImportData {
 
 	private static void importUser() throws IOException, NumberFormatException, SQLException {
 		// TODO Auto-generated method stub
-		String excelFilePath = "user.xlsx";
+		String excelFilePath = "C:\\Users\\chenx11\\Desktop\\user.xlsx";
 		FileInputStream inputStream = new FileInputStream(excelFilePath);
 		@SuppressWarnings("resource")
 		Workbook workbook = new XSSFWorkbook(inputStream);
@@ -200,7 +201,8 @@ public class ImportData {
 			Iterator<Cell> cellIterator = row.cellIterator();
 			while (cellIterator.hasNext()) {
 				Cell cell = cellIterator.next();
-				list.add(cell.toString());
+				String data = new DataFormatter().formatCellValue(cell);
+				list.add(data);
 			}
 			System.out.println("ready to import");
 			is.InsertUser(list.get(0), list.get(1));
@@ -218,7 +220,7 @@ public class ImportData {
 	}
 
 	private static void importMenu() throws IOException, NumberFormatException, SQLException {
-		String excelFilePath = "menu.xlsx";
+		String excelFilePath = "C:\\Users\\chenx11\\Desktop\\menu.xlsx";
 		FileInputStream inputStream = new FileInputStream(excelFilePath);
 		@SuppressWarnings("resource")
 		Workbook workbook = new XSSFWorkbook(inputStream);
@@ -233,6 +235,7 @@ public class ImportData {
 			Iterator<Cell> cellIterator = row.cellIterator();
 			while (cellIterator.hasNext()) {
 				Cell cell = cellIterator.next();
+				
 				list.add(cell.toString());
 			}
 			is.InsertMenu(list.get(0), list.get(1), list.get(2));
@@ -243,7 +246,7 @@ public class ImportData {
 
 	private static void importRes() throws IOException {
 		// Auto-generated method stub
-		String excelFilePath = "restaurant.xlsx";
+		String excelFilePath = "C:\\Users\\chenx11\\Desktop\\restaurant.xlsx";
 		FileInputStream inputStream = new FileInputStream(excelFilePath);
 		@SuppressWarnings("resource")
 		Workbook workbook = new XSSFWorkbook(inputStream);
